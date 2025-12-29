@@ -14,7 +14,7 @@ import type { Disposer } from "@freelensapp/utilities";
 
 import type { CatalogCategory, CatalogEntity } from "../../common/catalog";
 import type { CatalogEntityOnBeforeRun } from "../../renderer/api/catalog/entity/registry";
-import type { ClusterId, ClusterInfo } from "../common-api/cluster-types";
+import type { ClusterInfo } from "../common-api/cluster-types";
 
 export const catalogCategories = asLegacyGlobalForExtensionApi(catalogCategoryRegistryInjectable);
 
@@ -97,7 +97,7 @@ export function getAllClusters(): ClusterInfo[] {
  * }
  * ```
  */
-export function getClusterById(id: ClusterId): ClusterInfo | undefined {
+export function getClusterById(id: string): ClusterInfo | undefined {
   return clusterEnumeration.getById(id);
 }
 

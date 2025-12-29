@@ -50,7 +50,7 @@ export const ResourceMetrics = observer(
 
     return (
       <div className={cssNames("ResourceMetrics flex column", className)}>
-        <div className="switchers flex gaps">
+        <div className="switchers">
           <RadioGroup asButtons className="flex box grow gaps" value={tab} onChange={setTab}>
             {tabs.map((tab, index) => (
               <Radio key={index} className="box grow" label={tab} value={tab} />

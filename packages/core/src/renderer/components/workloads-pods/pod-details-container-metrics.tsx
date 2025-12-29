@@ -9,7 +9,6 @@ import { toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 import React from "react";
 import { getItemMetrics } from "../../../common/k8s-api/endpoints/metrics.api";
-import { MetricsTimeRangeSelector } from "../cluster/metrics-time-range-selector";
 import { ResourceMetrics } from "../resource-metrics";
 import { ContainerCharts } from "./container-charts";
 import podContainerMetricsInjectable from "./container-metrics.injectable";
@@ -31,22 +30,16 @@ interface Dependencies {
 
 const NonInjectedPodDetailsContainerMetrics = observer(
   ({ pod, container, podContainerMetrics }: ContainerMetricsProps & Dependencies) => {
-    const metricsData = podContainerMetrics.value.get();
-    const metrics = metricsData ? getItemMetrics(toJS(metricsData), container.name) : null;
+    const metrics = getItemMetrics(toJS(podContainerMetrics.value.get()), container.name);
+
+    if (!metrics) {
+      return null;
+    }
 
     return (
-      <>
-        <div className="flex" style={{ marginBottom: "var(--margin)", justifyContent: "flex-end" }}>
-          <MetricsTimeRangeSelector />
-        </div>
-        {metrics ? (
-          <ResourceMetrics object={pod} tabs={["CPU", "Memory", "Filesystem"]} metrics={metrics}>
-            <ContainerCharts />
-          </ResourceMetrics>
-        ) : (
-          <div style={{ padding: "var(--padding)", textAlign: "center" }}>Loading metrics...</div>
-        )}
-      </>
+      <ResourceMetrics object={pod} tabs={["CPU", "Memory", "Filesystem"]} metrics={metrics}>
+        <ContainerCharts />
+      </ResourceMetrics>
     );
   },
 );

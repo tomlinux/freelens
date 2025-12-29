@@ -26,8 +26,6 @@ import type { ChartProps } from "./chart";
 export interface BarChartProps extends ChartProps {
   name?: string;
   timeLabelStep?: number; // Minute labels appearance step
-  minTime?: number; // Minimum timestamp (unix seconds) for x-axis
-  maxTime?: number; // Maximum timestamp (unix seconds) for x-axis
 }
 
 const getBarColor: Scriptable<string> = ({ dataset }) => Color(dataset?.borderColor).alpha(0.2).string();
@@ -43,8 +41,6 @@ const NonInjectedBarChart = observer(
     data,
     className,
     timeLabelStep = 10,
-    minTime,
-    maxTime,
     plugins,
     options: customOptions,
     ...settings
@@ -72,23 +68,14 @@ const NonInjectedBarChart = observer(
       return <NoMetrics />;
     }
 
-    // Calculate adaptive time label step based on time range
-    const timeRangeSeconds = maxTime && minTime ? maxTime - minTime : 3600;
-    const adaptiveTimeLabelStep = (() => {
-      if (timeRangeSeconds <= 3600) return 5; // 1 hour: every 5 minutes
-      if (timeRangeSeconds <= 7200) return 10; // 2 hours: every 10 minutes
-      if (timeRangeSeconds <= 14400) return 15; // 4 hours: every 15 minutes
-      return 1440; // others: every 24 hours
-    })();
-
     const formatTimeLabels = (timestamp: string, index: number) => {
-      const label = moment(parseInt(timestamp)).format(timeRangeSeconds > 86400 ? "MMM DD HH:mm" : "HH:mm");
+      const label = moment(parseInt(timestamp)).format("HH:mm");
       const offset = "     ";
 
       if (index == 0) return offset + label;
       if (index == 60) return label + offset;
 
-      return index % adaptiveTimeLabelStep == 0 ? label : "";
+      return index % timeLabelStep == 0 ? label : "";
     };
 
     const barOptions: ChartOptions = {
@@ -112,8 +99,6 @@ const NonInjectedBarChart = observer(
               fontSize: 11,
               maxRotation: 0,
               minRotation: 0,
-              min: minTime ? minTime * 1000 : undefined,
-              max: maxTime ? maxTime * 1000 : undefined,
             },
             bounds: "data",
             time: {
@@ -121,10 +106,7 @@ const NonInjectedBarChart = observer(
               displayFormats: {
                 minute: "x",
               },
-              parser: (timestamp: string | number) => {
-                // Timestamp is already in milliseconds
-                return typeof timestamp === "string" ? parseInt(timestamp) : timestamp;
-              },
+              parser: (timestamp) => moment.unix(parseInt(timestamp)),
             },
           },
         ],

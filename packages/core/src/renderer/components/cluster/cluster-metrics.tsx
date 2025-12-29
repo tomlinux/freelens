@@ -21,7 +21,6 @@ import { ClusterMetricSwitchers } from "./cluster-metric-switchers";
 import clusterOverviewMetricsInjectable from "./cluster-metrics.injectable";
 import styles from "./cluster-metrics.module.scss";
 import { ClusterNoMetrics } from "./cluster-no-metrics";
-import selectedMetricsTimeRangeInjectable from "./overview/selected-metrics-time-range.injectable";
 import selectedMetricsTypeInjectable from "./overview/selected-metrics-type.injectable";
 import selectedNodeRoleForMetricsInjectable from "./overview/selected-node-role-for-metrics.injectable";
 
@@ -29,7 +28,6 @@ import type { IAsyncComputed } from "@ogre-tools/injectable-react";
 import type { ChartOptions, ChartPoint } from "chart.js";
 
 import type { ClusterMetricData } from "../../../common/k8s-api/endpoints/metrics.api/request-cluster-metrics-by-node-names.injectable";
-import type { SelectedMetricsTimeRange } from "./overview/selected-metrics-time-range.injectable";
 import type { SelectedMetricsType } from "./overview/selected-metrics-type.injectable";
 import type { SelectedNodeRoleForMetrics } from "./overview/selected-node-role-for-metrics.injectable";
 
@@ -37,14 +35,12 @@ interface Dependencies {
   clusterOverviewMetrics: IAsyncComputed<ClusterMetricData | undefined>;
   selectedMetricsType: SelectedMetricsType;
   selectedNodeRoleForMetrics: SelectedNodeRoleForMetrics;
-  selectedMetricsTimeRange: SelectedMetricsTimeRange;
 }
 
 const NonInjectedClusterMetrics = observer((props: Dependencies) => {
-  const { clusterOverviewMetrics, selectedMetricsType, selectedNodeRoleForMetrics, selectedMetricsTimeRange } = props;
+  const { clusterOverviewMetrics, selectedMetricsType, selectedNodeRoleForMetrics } = props;
 
   const metrics = clusterOverviewMetrics.value.get();
-  const { start: minTime, end: maxTime } = selectedMetricsTimeRange.timestamps.get();
   const [plugins] = useState([new ZebraStripesPlugin()]);
   const { memoryCapacity, cpuCapacity } = getMetricLastPoints(metrics ?? {});
   const metricValues = selectedMetricsType.metrics.get();
@@ -52,7 +48,7 @@ const NonInjectedClusterMetrics = observer((props: Dependencies) => {
   const metricNodeRole = selectedNodeRoleForMetrics.value.get();
   const colors = { cpu: "#00a7a0", memory: "#C93DCE" };
   const data = metricValues.map((value) => ({
-    x: value[0] * 1000, // Convert Unix seconds to milliseconds for Chart.js
+    x: value[0],
     y: parseFloat(value[1]).toFixed(3),
   }));
 
@@ -134,8 +130,6 @@ const NonInjectedClusterMetrics = observer((props: Dependencies) => {
         showLegend={false}
         plugins={plugins}
         className={styles.chart}
-        minTime={minTime}
-        maxTime={maxTime}
       />
     );
   };
@@ -153,6 +147,5 @@ export const ClusterMetrics = withInjectables<Dependencies>(NonInjectedClusterMe
     clusterOverviewMetrics: di.inject(clusterOverviewMetricsInjectable),
     selectedMetricsType: di.inject(selectedMetricsTypeInjectable),
     selectedNodeRoleForMetrics: di.inject(selectedNodeRoleForMetricsInjectable),
-    selectedMetricsTimeRange: di.inject(selectedMetricsTimeRangeInjectable),
   }),
 });

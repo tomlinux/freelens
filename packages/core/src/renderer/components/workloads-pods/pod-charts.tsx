@@ -4,31 +4,23 @@
  * Licensed under MIT License. See LICENSE in root directory for more information.
  */
 
-import { withInjectables } from "@ogre-tools/injectable-react";
 import { mapValues } from "lodash";
 import { observer } from "mobx-react";
 import React, { useContext } from "react";
 import { isMetricsEmpty, normalizeMetrics } from "../../../common/k8s-api/endpoints/metrics.api";
 import { BarChart } from "../chart";
 import { metricTabOptions } from "../chart/options";
-import selectedMetricsTimeRangeInjectable from "../cluster/overview/selected-metrics-time-range.injectable";
 import { ResourceMetricsContext } from "../resource-metrics";
 import { NoMetrics } from "../resource-metrics/no-metrics";
 
 import type { ChartDataSets } from "../chart";
 import type { MetricsTab } from "../chart/options";
-import type { SelectedMetricsTimeRange } from "../cluster/overview/selected-metrics-time-range.injectable";
 import type { AtLeastOneMetricTab } from "../resource-metrics";
 
 export const podMetricTabs: AtLeastOneMetricTab = ["CPU", "Memory", "Network", "Filesystem"];
 
-interface Dependencies {
-  selectedMetricsTimeRange: SelectedMetricsTimeRange;
-}
-
-const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencies) => {
+export const PodCharts = observer(() => {
   const { metrics, tab, object } = useContext(ResourceMetricsContext) ?? {};
-  const { start: minTime, end: maxTime } = selectedMetricsTimeRange.timestamps.get();
 
   if (!metrics || !object || !tab) return null;
   if (isMetricsEmpty(metrics)) return <NoMetrics />;
@@ -46,7 +38,7 @@ const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencie
         label: `Usage`,
         tooltip: `Container CPU cores usage`,
         borderColor: "#00a7a0",
-        data: cpuUsage.map(([x, y]) => ({ x: x * 1000, y })),
+        data: cpuUsage.map(([x, y]) => ({ x, y })),
       },
     ],
     Memory: [
@@ -55,7 +47,7 @@ const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencie
         label: `Usage`,
         tooltip: `Container memory usage`,
         borderColor: "#c93dce",
-        data: memoryUsage.map(([x, y]) => ({ x: x * 1000, y })),
+        data: memoryUsage.map(([x, y]) => ({ x, y })),
       },
     ],
     Network: [
@@ -64,14 +56,14 @@ const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencie
         label: `Receive`,
         tooltip: `Bytes received by all containers`,
         borderColor: "#64c5d6",
-        data: networkReceive.map(([x, y]) => ({ x: x * 1000, y })),
+        data: networkReceive.map(([x, y]) => ({ x, y })),
       },
       {
         id: `${id}-networkTransmit`,
         label: `Transmit`,
         tooltip: `Bytes transmitted from all containers`,
         borderColor: "#46cd9e",
-        data: networkTransmit.map(([x, y]) => ({ x: x * 1000, y })),
+        data: networkTransmit.map(([x, y]) => ({ x, y })),
       },
     ],
     Filesystem: [
@@ -80,21 +72,21 @@ const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencie
         label: `Usage`,
         tooltip: `Bytes consumed on this filesystem`,
         borderColor: "#ffc63d",
-        data: fsUsage.map(([x, y]) => ({ x: x * 1000, y })),
+        data: fsUsage.map(([x, y]) => ({ x, y })),
       },
       {
         id: `${id}-fsWrites`,
         label: `Writes`,
         tooltip: `Bytes written on this filesystem`,
         borderColor: "#ff963d",
-        data: fsWrites.map(([x, y]) => ({ x: x * 1000, y })),
+        data: fsWrites.map(([x, y]) => ({ x, y })),
       },
       {
         id: `${id}-fsReads`,
         label: `Reads`,
         tooltip: `Bytes read on this filesystem`,
         borderColor: "#fff73d",
-        data: fsReads.map(([x, y]) => ({ x: x * 1000, y })),
+        data: fsReads.map(([x, y]) => ({ x, y })),
       },
     ],
   };
@@ -104,14 +96,6 @@ const NonInjectedPodCharts = observer(({ selectedMetricsTimeRange }: Dependencie
       name={`${object.getName()}-metric-${tab}`}
       options={metricTabOptions[tab]}
       data={{ datasets: datasets[tab] }}
-      minTime={minTime}
-      maxTime={maxTime}
     />
   );
-});
-
-export const PodCharts = withInjectables<Dependencies>(NonInjectedPodCharts, {
-  getProps: (di) => ({
-    selectedMetricsTimeRange: di.inject(selectedMetricsTimeRangeInjectable),
-  }),
 });

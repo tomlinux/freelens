@@ -7,13 +7,13 @@ import { computed, makeObservable } from "mobx";
 import { mapClusterToClusterInfo } from "./cluster-mapping";
 
 import type { KubernetesCluster } from "../../../../common/catalog-entities/kubernetes-cluster";
-import type { ClusterId, ClusterInfo } from "../../../../extensions/common-api/cluster-types";
+import type { ClusterInfo } from "../../../../extensions/common-api/cluster-types";
 
 export interface ClusterEnumerationDependencies {
   /** Get all KubernetesCluster entities from the catalog */
   readonly getKubernetesClusters: () => KubernetesCluster[];
   /** Get active cluster ID (renderer only) - returns undefined if no active tracking */
-  readonly getActiveClusterId?: () => ClusterId | undefined;
+  readonly getActiveClusterId?: () => string | undefined;
   /** Get active cluster entity (renderer only) - for activeCluster property */
   readonly getActiveCluster?: () => KubernetesCluster | undefined;
 }
@@ -52,7 +52,7 @@ export class ClusterEnumeration {
   /**
    * Find a cluster by ID.
    */
-  getById(id: ClusterId): ClusterInfo | undefined {
+  getById(id: string): ClusterInfo | undefined {
     if (!id) {
       return undefined;
     }

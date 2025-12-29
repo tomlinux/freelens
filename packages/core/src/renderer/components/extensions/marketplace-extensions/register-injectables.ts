@@ -6,13 +6,13 @@
  * This replaces the webpack-based auto-registration system.
  */
 
-import executeOnClusterInjectable from "./execute-on-cluster.injectable";
+import marketplaceExtensionsInjectable from "./marketplace-extensions.injectable";
 
 import type { DiContainerForInjection } from "@ogre-tools/injectable";
 
 export function registerInjectables(di: DiContainerForInjection): void {
   try {
-    di.register(executeOnClusterInjectable);
+    di.register(marketplaceExtensionsInjectable);
   } catch (e) {
     /* Ignore duplicate registration */
   }
